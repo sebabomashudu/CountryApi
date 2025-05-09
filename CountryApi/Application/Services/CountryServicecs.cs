@@ -11,8 +11,20 @@ public sealed class CountryService(
 {
     public async Task<IEnumerable<CountryDto>> GetAllCountriesAsync()
     {
-        var countries = await apiClient.GetAllCountriesAsync();
-        return countries.Select(ToDto);
+        /*var countries = await apiClient.GetAllCountriesAsync();
+        return countries.Select(ToDto);*/
+
+        try
+        {
+            var countries = await apiClient.GetAllCountriesAsync();
+            return countries.Select(ToDto);
+        }
+        catch (Exception ex)  // Add this try-catch block
+        {
+            logger.LogError(ex, "Failed to fetch countries");
+            throw;  // Re-throw to preserve the original exception
+        }
+
     }
 
     private static CountryDto ToDto(RestCountry country)
