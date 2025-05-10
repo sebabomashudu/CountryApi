@@ -64,3 +64,41 @@ jobs:
     
     - name: Run Unit Tests
       run: dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build --verbosity normal
+
+  package:
+    name: Package Application
+    needs: test  # Depends on successful tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.SOLUTION_FILE }}
+    
+    - name: Publish Application
+      run: |
+        mkdir -p ./publish
+        dotnet publish ${{ env.API_PROJECT }} \
+          -c Release \
+          -o ./publish \
+          --no-restore \
+          /p:Version=1.0.${{ github.run_number }}
+    
+    - name: Create ZIP Package
+      run: |
+        cd ./publish
+        zip -r ../${{ env.PACKAGE_NAME }}.zip .
+        cd ..
+    
+    - name: Upload Package Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PACKAGE_NAME }}-package
+        path: ${{ env.PACKAGE_NAME }}.zip
+        retention-days: 7   
