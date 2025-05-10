@@ -1,4 +1,4 @@
-name: Frontend
+name: Frontend CI
 
 on:
   push:
@@ -13,6 +13,7 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
+  BUILD_DIR: 'country-frontend/build'  # Explicit build path
 
 jobs:
   build:
@@ -29,30 +30,29 @@ jobs:
         cache: 'npm'
         cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
     
-    - name: Install & Build
+    - name: Install dependencies
       working-directory: ${{ env.PROJECT_DIR }}
-      run: |
-        npm ci
-        npm run build
-        
-      # Verify build directory exists
-      if: |
-        echo "Checking build directory..."
-        ls -la ${{ env.PROJECT_DIR }}/build
-        
-    - name: Prepare Artifact
-      working-directory: ${{ env.PROJECT_DIR }}
-      run: |
-        echo "Current directory: $(pwd)"
-        echo "Build contents:"
-        ls -la build/
-        
-        mkdir -p ../artifact
-        cp -r build/* ../artifact/
-        echo "Artifact contents:"
-        ls -la ../artifact/
+      run: npm ci
     
-    - name: Upload Build Artifacts
+    - name: Build production
+      working-directory: ${{ env.PROJECT_DIR }}
+      run: |
+        npm run build
+        echo "Build directory contents:"
+        ls -la build/  # Verify build output
+        
+    - name: Prepare artifact
+      run: |
+        echo "Workspace: $GITHUB_WORKSPACE"
+        echo "Build files:"
+        ls -la ${{ env.BUILD_DIR }} || echo "No build files found"
+        
+        mkdir -p artifact
+        cp -r ${{ env.BUILD_DIR }}/* artifact/
+        echo "Artifact contents:"
+        ls -la artifact/
+    
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build
@@ -67,24 +67,19 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Download Build Artifacts
+    - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         name: frontend-build
         path: artifact
     
-    - name: Verify Download
+    - name: Create ZIP package
       run: |
-        echo "Downloaded artifacts:"
-        ls -la artifact/
-        du -sh artifact/
-    
-    - name: Create ZIP Package
-      run: |
+        echo "Packaging from: $(pwd)"
         cd artifact
         zip -r ../frontend-pkg-${{ github.run_number }}.zip .
     
-    - name: Upload Final Package
+    - name: Upload final package
       uses: actions/upload-artifact@v4
       with:
         name: frontend-package
