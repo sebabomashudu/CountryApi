@@ -1,5 +1,4 @@
 name: Frontend CI
-
 on:
   push:
     branches: [master]
@@ -13,7 +12,7 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  BUILD_OUTPUT_DIR: 'country-frontend/dist'  # Changed to Vite's output dir
+  BUILD_OUTPUT_DIR: 'country-frontend/dist'
 
 jobs:
   build:
@@ -30,32 +29,19 @@ jobs:
         cache: 'npm'
         cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
     
-    - name: Install dependencies
-      working-directory: ${{ env.PROJECT_DIR }}
-      run: npm ci
-    
-    - name: Build production
+    - name: Install & Build
       working-directory: ${{ env.PROJECT_DIR }}
       run: |
+        npm ci
         npm run build
         echo "Vite build output:"
-        ls -la dist/  # Verify Vite's output directory
-        
-    - name: Prepare artifact
-      run: |
-        echo "Copying from: ${{ env.BUILD_OUTPUT_DIR }}"
-        ls -la ${{ env.BUILD_OUTPUT_DIR }}
-        
-        mkdir -p artifact
-        cp -r ${{ env.BUILD_OUTPUT_DIR }}/* artifact/
-        echo "Artifact contents:"
-        ls -la artifact/
+        ls -la dist/
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: frontend-build
-        path: artifact
+        name: frontend-dist
+        path: ${{ env.BUILD_OUTPUT_DIR }}
         retention-days: 1
 
   package:
@@ -69,10 +55,28 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-        name: frontend-build
-        path: artifact
+        name: frontend-dist
+        path: dist
+    
+    - name: Verify downloaded files
+      run: |
+        echo "Downloaded files:"
+        ls -la dist/
+        echo "Total size:"
+        du -sh dist/
     
     - name: Create ZIP package
       run: |
-        cd artifact
-        zip -r ../frontend-pkg-$
+        mkdir -p package
+        cp -r dist/* package/
+        cd package
+        zip -r ../frontend-pkg-${{ github.run_number }}.zip .
+        echo "ZIP contents:"
+        unzip -l ../frontend-pkg-${{ github.run_number }}.zip | head -10
+    
+    - name: Upload final package
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-package
+        path: frontend-pkg-*.zip
+        retention-days: 7
