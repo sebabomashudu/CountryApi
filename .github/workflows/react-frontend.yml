@@ -18,8 +18,6 @@ jobs:
   build:
     name: Build Stage
     runs-on: ubuntu-latest
-    outputs:
-      artifact-name: ${{ steps.set-artifact-name.outputs.name }}
     
     steps:
     - uses: actions/checkout@v3
@@ -37,18 +35,18 @@ jobs:
         npm ci
         npm run build
     
-    - name: Set artifact name
-      id: set-artifact-name
+    - name: Prepare Artifact
+      working-directory: ${{ env.PROJECT_DIR }}
       run: |
-        echo "name=frontend-build-$(date +%s)" >> $GITHUB_OUTPUT
+        mkdir -p artifact
+        cp -r build/* artifact/
     
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.set-artifact-name.outputs.name }}
-        path: ${{ env.PROJECT_DIR }}/build
+        name: frontend-build
+        path: ${{ env.PROJECT_DIR }}/artifact
         retention-days: 1
-      if: always()  # Ensure upload even if later steps fail
 
   package:
     name: Package Stage
@@ -61,25 +59,22 @@ jobs:
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: ${{ needs.build.outputs.artifact-name }}
-        path: ${{ env.PROJECT_DIR }}/build
-        pattern: 'frontend-build-*'  # Wildcard fallback
-        merge-multiple: true
+        name: frontend-build
+        path: artifact
     
     - name: Verify Download
       run: |
-        echo "Downloaded artifacts:"
-        ls -la ${{ env.PROJECT_DIR }}/build
+        echo "Artifact contents:"
+        ls -la artifact/
     
     - name: Create ZIP Package
-      working-directory: ${{ env.PROJECT_DIR }}
       run: |
-        cd build
+        cd artifact
         zip -r ../frontend-pkg-${{ github.run_number }}.zip .
     
     - name: Upload Final Package
       uses: actions/upload-artifact@v4
       with:
         name: frontend-package
-        path: ${{ env.PROJECT_DIR }}/frontend-pkg-*.zip
+        path: frontend-pkg-*.zip
         retention-days: 7
