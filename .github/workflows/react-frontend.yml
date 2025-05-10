@@ -1,7 +1,11 @@
-name: Frontend CI
+name: Frontend
 
 on:
   push:
+    branches: [master]
+    paths:
+      - 'country-frontend/**'
+  pull_request:
     branches: [master]
     paths:
       - 'country-frontend/**'
@@ -9,10 +13,11 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
+  BUILD_OUTPUT_DIR: 'country-frontend/dist'
 
 jobs:
-  build-and-package:
-    name: Build & Package
+  build:
+    name: Build Stage
     runs-on: ubuntu-latest
     
     steps:
@@ -30,13 +35,36 @@ jobs:
       run: |
         npm ci
         npm run build
-    
-    - name: Create ZIP Package
+        echo "Build output:"
+        ls -la dist/
+
+    # Only outputs the dist directory without uploading artifact
+    - name: Preserve build output
       run: |
-        cd ${{ env.PROJECT_DIR }}/dist
+        echo "BUILD_OUTPUT_PATH=${{ env.BUILD_OUTPUT_DIR }}" >> $GITHUB_ENV
+
+  package:
+    name: Package Stage
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Recreate build output
+      run: |
+        echo "Rebuilding in package stage..."
+        cd ${{ env.PROJECT_DIR }}
+        npm ci
+        npm run build
+        ls -la dist/
+    
+    - name: Create ZIP package
+      run: |
+        cd ${{ env.BUILD_OUTPUT_DIR }}
         zip -r ../../frontend-pkg-${{ github.run_number }}.zip .
     
-    - name: Upload Artifact
+    - name: Upload final package
       uses: actions/upload-artifact@v4
       with:
         name: frontend-package
