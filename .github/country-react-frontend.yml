@@ -1,0 +1,83 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'country-frontend/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'country-frontend/**'
+
+env:
+  NODE_VERSION: '18.x'
+  PROJECT_DIR: 'country-frontend'
+  ARTIFACT_NAME: 'frontend-pkg-${{ github.run_number }}'
+
+jobs:
+  build:
+    name: Build Stage
+    runs-on: ubuntu-latest
+    outputs:
+      build-dir: ${{ steps.set-outputs.outputs.build-dir }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ${{ env.PROJECT_DIR }}
+    
+    - name: Run production build
+      run: npm run build
+      working-directory: ${{ env.PROJECT_DIR }}
+    
+    - name: Set build output
+      id: set-outputs
+      run: |
+        echo "build-dir=${{ env.PROJECT_DIR }}/build" >> $GITHUB_OUTPUT
+        echo "Build complete at: ${{ env.PROJECT_DIR }}/build"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: ${{ env.PROJECT_DIR }}/build
+        retention-days: 1
+
+  package:
+    name: Package Stage
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: ${{ env.PROJECT_DIR }}/build
+    
+    - name: Create versioned ZIP
+      run: |
+        cd ${{ env.PROJECT_DIR }}/build
+        zip -r ../../${{ env.ARTIFACT_NAME }}.zip .
+        echo "ZIP_PATH=${{ github.workspace }}/${{ env.ARTIFACT_NAME }}.zip" >> $GITHUB_ENV
+    
+    - name: Upload package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ${{ env.ZIP_PATH }}
+        retention-days: 7
