@@ -6,7 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddMemoryCache();
-//builder.Services.AddHttpClient<ICountryApiClient, RestCountriesApiClient>();
 builder.Services.AddHttpClient<ICountryApiClient, RestCountriesApiClient>(client =>
 {
     client.BaseAddress = new Uri(uriString: builder.Configuration["RestCountriesApiUrl"]);
