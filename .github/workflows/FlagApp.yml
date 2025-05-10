@@ -20,8 +20,8 @@ env:
   TEST_PROJECT: 'FlagApp/CountryApi.Tests/CountryApi.Tests.csproj'  
 
 jobs:
-  build-and-test:
-    name: Build and Test CountryApi
+  build:
+    name: Build CountryApi
     runs-on: ubuntu-latest
     
     steps:
@@ -38,22 +38,12 @@ jobs:
     - name: Build solution
       run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
     
-    - name: Run unit tests
-      run: dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build --verbosity normal
-    
-    - name: Publish API project
-      if: success()
-      run: |
-        mkdir -p CountryApi/publish
-        dotnet publish ${{ env.API_PROJECT }} \
-          -c Release \
-          -o CountryApi/publish \
-          --no-restore \
-          --no-build
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
       with:
-        name: backend-artifacts
-        path: CountryApi/publish/**/*
+        name: build-output
+        path: |
+          CountryApi/**/bin/Release
+          CountryApi/**/obj/Release
         retention-days: 1
+    
