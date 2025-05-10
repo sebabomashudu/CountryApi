@@ -16,15 +16,11 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  ARTIFACT_NAME: 'frontend-pkg-${{ github.run_number }}'
-
+  
 jobs:
   build:
     name: Build Stage
     runs-on: ubuntu-latest
-    outputs:
-      build-dir: ${{ steps.set-outputs.outputs.build-dir }}
-    
     steps:
     - uses: actions/checkout@v3
     
@@ -33,22 +29,16 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-    
+        cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
     - name: Install dependencies
-      run: npm ci
-      working-directory: ${{ env.PROJECT_DIR }}
+      working-directory: ${{ env.PROJECT_DIR }}  # All commands run in frontend dir
+      run: npm ci  # Uses package-lock.json from country-frontend/
     
     - name: Run production build
-      run: npm run build
       working-directory: ${{ env.PROJECT_DIR }}
+      run: npm run build
     
-    - name: Set build output
-      id: set-outputs
-      run: |
-        echo "build-dir=${{ env.PROJECT_DIR }}/build" >> $GITHUB_OUTPUT
-        echo "Build complete at: ${{ env.PROJECT_DIR }}/build"
-    
-    - name: Upload build artifacts
+    - name: Upload build files
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build
@@ -67,17 +57,14 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: frontend-build
-        path: ${{ env.PROJECT_DIR }}/build
-    
-    - name: Create versioned ZIP
+        
+    - name: Create ZIP package
       run: |
-        cd ${{ env.PROJECT_DIR }}/build
-        zip -r ../../${{ env.ARTIFACT_NAME }}.zip .
-        echo "ZIP_PATH=${{ github.workspace }}/${{ env.ARTIFACT_NAME }}.zip" >> $GITHUB_ENV
-    
-    - name: Upload package
+        cd build  # Now in country-frontend/build after download
+        zip -r ../frontend-pkg-${{ github.run_number }}.zip .
+        
+    - name: Upload final package
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.ARTIFACT_NAME }}
-        path: ${{ env.ZIP_PATH }}
-        retention-days: 7
+        name: frontend-package
+        path: ${{ env.PROJECT_DIR }}/frontend-pkg-*.zip
