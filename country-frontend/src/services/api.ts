@@ -1,0 +1,23 @@
+import axios from 'axios'
+
+/*const REST_COUNTRIES_API = 'https://restcountries.com/v3.1'
+
+export const fetchAllCountries = async () => {
+  const response = await axios.get(`${REST_COUNTRIES_API}/all`)
+  return response.data
+}
+
+export const fetchCountryByName = async (name: string) => {
+  const response = await axios.get(`${REST_COUNTRIES_API}/name/${name}`)
+  return response.data[0] // Return first match
+}*/
+
+// For your C# backend
+export const fetchAllCountries = async () => {
+  const response = await axios.get('/api/Countries') // Will be proxied to your C# API
+  return response.data
+}
+export const fetchCountryByName = async (name: string) => {
+  const response = await axios.get(`/api/Countries/${name}`)
+  return response.data // Return first match
+}

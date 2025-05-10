@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+############################
+# React frontend
+############################
+country-frontend/node_modules/
+country-frontend/dist/
+country-frontend/build/
+country-frontend/.env
+country-frontend/.env.*.local
+country-frontend/coverage/
