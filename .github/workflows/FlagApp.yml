@@ -7,35 +7,39 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'CountryApi/**'  
+      - 'CountryApi/**'
+      - 'CountryApi.Tests/**'
+      - 'CountryApi.sln'
   pull_request:
     branches: [ master ]
     paths:
       - 'CountryApi/**'
+      - 'CountryApi.Tests/**'
+      - 'CountryApi.sln'
 
 env:
-  DOTNET_VERSION: '8.0.x'  
-  SOLUTION_FILE: 'FlagApp/CountryApi.sln'  
-  API_PROJECT: 'FlagApp/CountryApi/CountryApi.csproj' 
-  TEST_PROJECT: 'FlagApp/CountryApi.Tests/CountryApi.Tests.csproj'  
+  DOTNET_VERSION: '8.0.x'
+  SOLUTION_FILE: 'CountryApi.sln'
+  API_PROJECT: 'CountryApi/CountryApi.csproj'
+  TEST_PROJECT: 'CountryApi.Tests/CountryApi.Tests.csproj'
 
 jobs:
   build:
-    name: Build CountryApi
+    name: Build Solution
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v3
     
-    - name: Setup .NET
+    - name: Setup .NET 8
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
-    - name: Restore dependencies
+    - name: Restore Dependencies
       run: dotnet restore ${{ env.SOLUTION_FILE }}
     
-    - name: Build solution
+    - name: Build Solution
       run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
     
     - name: Upload Build Artifacts
@@ -43,7 +47,20 @@ jobs:
       with:
         name: build-output
         path: |
-          CountryApi/**/bin/Release
-          CountryApi/**/obj/Release
+          CountryApi/bin/Release
+          CountryApi.Tests/bin/Release
         retention-days: 1
+
+  test:
+    name: Run Tests
+    needs: build
+    runs-on: ubuntu-latest
     
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/download-artifact@v4
+      with:
+        name: build-output
+    
+    - name: Run Unit Tests
+      run: dotnet test ${{ env.TEST_PROJECT }} --configuration Release --no-build --verbosity normal
