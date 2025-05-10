@@ -1,10 +1,7 @@
 name: Frontend CI
+
 on:
   push:
-    branches: [master]
-    paths:
-      - 'country-frontend/**'
-  pull_request:
     branches: [master]
     paths:
       - 'country-frontend/**'
@@ -12,11 +9,10 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  BUILD_OUTPUT_DIR: 'country-frontend/dist'
 
 jobs:
-  build:
-    name: Build Stage
+  build-and-package:
+    name: Build & Package
     runs-on: ubuntu-latest
     
     steps:
@@ -34,47 +30,13 @@ jobs:
       run: |
         npm ci
         npm run build
-        echo "Vite build output:"
-        ls -la dist/
     
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-dist
-        path: ${{ env.BUILD_OUTPUT_DIR }}
-        retention-days: 1
-
-  package:
-    name: Package Stage
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-dist
-        path: dist
-    
-    - name: Verify downloaded files
+    - name: Create ZIP Package
       run: |
-        echo "Downloaded files:"
-        ls -la dist/
-        echo "Total size:"
-        du -sh dist/
+        cd ${{ env.PROJECT_DIR }}/dist
+        zip -r ../../frontend-pkg-${{ github.run_number }}.zip .
     
-    - name: Create ZIP package
-      run: |
-        mkdir -p package
-        cp -r dist/* package/
-        cd package
-        zip -r ../frontend-pkg-${{ github.run_number }}.zip .
-        echo "ZIP contents:"
-        unzip -l ../frontend-pkg-${{ github.run_number }}.zip | head -10
-    
-    - name: Upload final package
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: frontend-package
