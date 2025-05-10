@@ -1,5 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 name: Frontend CI
 
 on:
@@ -15,14 +13,13 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  BUILD_ARTIFACT: 'frontend-build-${{ github.run_id }}'  # Unique artifact name
 
 jobs:
   build:
     name: Build Stage
     runs-on: ubuntu-latest
     outputs:
-      artifact-name: ${{ env.BUILD_ARTIFACT }}  # Pass to package stage
+      artifact-name: ${{ steps.set-artifact-name.outputs.name }}
     
     steps:
     - uses: actions/checkout@v3
@@ -40,19 +37,23 @@ jobs:
         npm ci
         npm run build
     
+    - name: Set artifact name
+      id: set-artifact-name
+      run: |
+        echo "name=frontend-build-$(date +%s)" >> $GITHUB_OUTPUT
+    
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.BUILD_ARTIFACT }}  # Use unique name
+        name: ${{ steps.set-artifact-name.outputs.name }}
         path: ${{ env.PROJECT_DIR }}/build
         retention-days: 1
+      if: always()  # Ensure upload even if later steps fail
 
   package:
     name: Package Stage
     needs: build
     runs-on: ubuntu-latest
-    env:
-      BUILD_ARTIFACT: ${{ needs.build.outputs.artifact-name }}  # Get from build job
     
     steps:
     - uses: actions/checkout@v3
@@ -60,8 +61,15 @@ jobs:
     - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: ${{ env.BUILD_ARTIFACT }}  # Matches uploaded name
+        name: ${{ needs.build.outputs.artifact-name }}
         path: ${{ env.PROJECT_DIR }}/build
+        pattern: 'frontend-build-*'  # Wildcard fallback
+        merge-multiple: true
+    
+    - name: Verify Download
+      run: |
+        echo "Downloaded artifacts:"
+        ls -la ${{ env.PROJECT_DIR }}/build
     
     - name: Create ZIP Package
       working-directory: ${{ env.PROJECT_DIR }}
