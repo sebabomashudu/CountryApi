@@ -1,36 +1,47 @@
-import { useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { fetchCountryByName } from '../services/api'
+import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { fetchCountryByName } from '../services/api';
+import { CountryDetailCard } from '../components/CountryDetailCard';
+import { CountryDetailLoader } from '../components/CountryDetailLoader';
 
 interface Country {
-  name: string
-  flagUrl: string
-  population: number
-  capital: string
+  name: string;
+  flagUrl: string;
+  population: number;
+  capital: string;
 }
 
 export default function DetailPage() {
-  const { name } = useParams<{ name: string }>()
-  const [country, setCountry] = useState<Country | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { name } = useParams<{ name: string }>();
+  const [country, setCountry] = useState<Country | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (name) {
+      setLoading(true);
       fetchCountryByName(name)
-        .then(setCountry)
-        .catch(() => setError('Country not found'))
+        .then((data) => {
+          setCountry(data);
+          setError(null);
+        })
+        .catch(() => {
+          setError('Country not found');
+          setCountry(null);
+        })
+        .finally(() => setLoading(false));
     }
-  }, [name])
-
-  if (error) return <div className="p-4 text-red-500">{error}</div>
-  if (!country) return <div className="p-4">Loading country details...</div>
+  }, [name]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold mb-4">{country.name}</h1>
-      <img src={country.flagUrl} alt={`${country.name} flag`} className="w-64 h-auto mb-4" />
-      <p><strong>Capital:</strong> {country.capital}</p>
-      <p><strong>Population:</strong> {country.population.toLocaleString()}</p>
-    </div>
-  )
+    <>
+      <CountryDetailLoader 
+        loading={loading} 
+        error={error} 
+        country={country} 
+      />
+      
+      {country && <CountryDetailCard country={country} />}
+    </>
+  );
 }
