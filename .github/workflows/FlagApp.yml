@@ -5,11 +5,11 @@ name: Backend CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - '/CountryApi/**'  
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'CountryApi/**'
 
