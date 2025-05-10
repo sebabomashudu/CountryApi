@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import DetailPage from './pages/DetailPage'
-//ms
+//mss
 function App() {
   return (
     <BrowserRouter>
