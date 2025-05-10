@@ -13,7 +13,7 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  BUILD_DIR: 'country-frontend/build'  # Explicit build path
+  BUILD_OUTPUT_DIR: 'country-frontend/dist'  # Changed to Vite's output dir
 
 jobs:
   build:
@@ -38,17 +38,16 @@ jobs:
       working-directory: ${{ env.PROJECT_DIR }}
       run: |
         npm run build
-        echo "Build directory contents:"
-        ls -la build/  # Verify build output
+        echo "Vite build output:"
+        ls -la dist/  # Verify Vite's output directory
         
     - name: Prepare artifact
       run: |
-        echo "Workspace: $GITHUB_WORKSPACE"
-        echo "Build files:"
-        ls -la ${{ env.BUILD_DIR }} || echo "No build files found"
+        echo "Copying from: ${{ env.BUILD_OUTPUT_DIR }}"
+        ls -la ${{ env.BUILD_OUTPUT_DIR }}
         
         mkdir -p artifact
-        cp -r ${{ env.BUILD_DIR }}/* artifact/
+        cp -r ${{ env.BUILD_OUTPUT_DIR }}/* artifact/
         echo "Artifact contents:"
         ls -la artifact/
     
@@ -75,13 +74,5 @@ jobs:
     
     - name: Create ZIP package
       run: |
-        echo "Packaging from: $(pwd)"
         cd artifact
-        zip -r ../frontend-pkg-${{ github.run_number }}.zip .
-    
-    - name: Upload final package
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-package
-        path: frontend-pkg-*.zip
-        retention-days: 7
+        zip -r ../frontend-pkg-$
