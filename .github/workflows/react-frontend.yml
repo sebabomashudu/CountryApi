@@ -1,7 +1,6 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Frontend CI/CD
+name: Frontend CI
 
 on:
   push:
@@ -16,11 +15,15 @@ on:
 env:
   NODE_VERSION: '18.x'
   PROJECT_DIR: 'country-frontend'
-  
+  BUILD_ARTIFACT: 'frontend-build-${{ github.run_id }}'  # Unique artifact name
+
 jobs:
   build:
     name: Build Stage
     runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ env.BUILD_ARTIFACT }}  # Pass to package stage
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -30,18 +33,17 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
         cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
-    - name: Install dependencies
-      working-directory: ${{ env.PROJECT_DIR }}  # All commands run in frontend dir
-      run: npm ci  # Uses package-lock.json from country-frontend/
     
-    - name: Run production build
+    - name: Install & Build
       working-directory: ${{ env.PROJECT_DIR }}
-      run: npm run build
+      run: |
+        npm ci
+        npm run build
     
-    - name: Upload build files
+    - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: frontend-build
+        name: ${{ env.BUILD_ARTIFACT }}  # Use unique name
         path: ${{ env.PROJECT_DIR }}/build
         retention-days: 1
 
@@ -49,22 +51,27 @@ jobs:
     name: Package Stage
     needs: build
     runs-on: ubuntu-latest
+    env:
+      BUILD_ARTIFACT: ${{ needs.build.outputs.artifact-name }}  # Get from build job
     
     steps:
     - uses: actions/checkout@v3
     
-    - name: Download build artifacts
+    - name: Download Build Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: frontend-build
-        
-    - name: Create ZIP package
+        name: ${{ env.BUILD_ARTIFACT }}  # Matches uploaded name
+        path: ${{ env.PROJECT_DIR }}/build
+    
+    - name: Create ZIP Package
+      working-directory: ${{ env.PROJECT_DIR }}
       run: |
-        cd build  # Now in country-frontend/build after download
+        cd build
         zip -r ../frontend-pkg-${{ github.run_number }}.zip .
-        
-    - name: Upload final package
+    
+    - name: Upload Final Package
       uses: actions/upload-artifact@v4
       with:
         name: frontend-package
         path: ${{ env.PROJECT_DIR }}/frontend-pkg-*.zip
+        retention-days: 7
