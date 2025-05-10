@@ -7,7 +7,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'CountryApi/**'  
+      - '/CountryApi/**'  
   pull_request:
     branches: [ main ]
     paths:
