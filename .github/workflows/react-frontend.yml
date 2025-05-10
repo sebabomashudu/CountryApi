@@ -1,4 +1,4 @@
-name: Frontend CI: Build & Package
+name: Frontend
 
 on:
   push:
