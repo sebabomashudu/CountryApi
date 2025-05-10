@@ -1,4 +1,4 @@
-name: Frontend CI
+name: Frontend CI: Build & Package
 
 on:
   push:
@@ -34,18 +34,29 @@ jobs:
       run: |
         npm ci
         npm run build
-    
+        
+      # Verify build directory exists
+      if: |
+        echo "Checking build directory..."
+        ls -la ${{ env.PROJECT_DIR }}/build
+        
     - name: Prepare Artifact
       working-directory: ${{ env.PROJECT_DIR }}
       run: |
-        mkdir -p artifact
-        cp -r build/* artifact/
+        echo "Current directory: $(pwd)"
+        echo "Build contents:"
+        ls -la build/
+        
+        mkdir -p ../artifact
+        cp -r build/* ../artifact/
+        echo "Artifact contents:"
+        ls -la ../artifact/
     
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build
-        path: ${{ env.PROJECT_DIR }}/artifact
+        path: artifact
         retention-days: 1
 
   package:
@@ -64,8 +75,9 @@ jobs:
     
     - name: Verify Download
       run: |
-        echo "Artifact contents:"
+        echo "Downloaded artifacts:"
         ls -la artifact/
+        du -sh artifact/
     
     - name: Create ZIP Package
       run: |
