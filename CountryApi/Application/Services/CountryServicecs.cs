@@ -1,5 +1,4 @@
-﻿// Application/Services/CountryService.cs
-using CountryApi.Application.DTOs;
+﻿using CountryApi.Application.DTOs;
 using CountryApi.Application.Interfaces;
 using CountryApi.Infrastructure.Clients.Models;
 
@@ -11,18 +10,16 @@ public sealed class CountryService(
 {
     public async Task<IEnumerable<CountryDto>> GetAllCountriesAsync()
     {
-        /*var countries = await apiClient.GetAllCountriesAsync();
-        return countries.Select(ToDto);*/
-
+ 
         try
         {
             var countries = await apiClient.GetAllCountriesAsync();
             return countries.Select(ToDto);
         }
-        catch (Exception ex)  // Add this try-catch block
+        catch (Exception ex)  
         {
             logger.LogError(ex, "Failed to fetch countries");
-            throw;  // Re-throw to preserve the original exception
+            throw;  
         }
 
     }

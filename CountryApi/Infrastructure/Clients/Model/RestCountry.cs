@@ -1,5 +1,4 @@
-﻿// Infrastructure/Clients/Models/RestCountry.cs
-namespace CountryApi.Infrastructure.Clients.Models;
+﻿namespace CountryApi.Infrastructure.Clients.Models;
 
 public sealed class RestCountry
 {

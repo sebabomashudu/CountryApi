@@ -1,5 +1,4 @@
-﻿// Application/DTOs/CountryDto.cs
-namespace CountryApi.Application.DTOs;
+﻿namespace CountryApi.Application.DTOs;
 
 public sealed record CountryDto(
     string Name,

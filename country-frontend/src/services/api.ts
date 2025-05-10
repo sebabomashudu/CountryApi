@@ -16,12 +16,12 @@ export const fetchCountryByName = async (name: string) => {
   return response.data[0] // Return first match
 }*/
 
-// For your C# backend
+
 export const fetchAllCountries = async () => {
-  const response = await axios.get('/api/Countries') // Will be proxied to your C# API
+  const response = await axios.get('/api/Countries') // Will be proxied to C# API
   return response.data
 }
 export const fetchCountryByName = async (name: string) => {
   const response = await axios.get(`/api/Countries/${name}`)
-  return response.data // Return first match
+  return response.data // first match
 }
