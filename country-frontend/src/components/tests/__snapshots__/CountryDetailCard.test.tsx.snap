@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CountryDetailCard > matches the snapshot 1`] = `
+<div>
+  <div
+    class="p-4"
+  >
+    <h1
+      class="text-3xl font-bold mb-4"
+    >
+      Testland
+    </h1>
+    <img
+      alt="Testland flag"
+      class="w-64 h-auto mb-4"
+      src="https://flagcdn.com/test.svg"
+    />
+    <p>
+      <strong>
+        Capital:
+      </strong>
+       
+      Testville
+    </p>
+    <p>
+      <strong>
+        Population:
+      </strong>
+       
+      8,500,000
+    </p>
+  </div>
+</div>
+`;

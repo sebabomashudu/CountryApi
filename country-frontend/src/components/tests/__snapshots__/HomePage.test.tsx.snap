@@ -1,0 +1,76 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HomePage > matches snapshot when loaded 1`] = `
+<div>
+  <div
+    class="p-4"
+  >
+    <h1
+      class="text-3xl font-bold mb-6 text-center"
+    >
+      Countries
+    </h1>
+    <div
+      class="w-full"
+    >
+      <table
+        class="w-full table-fixed"
+      >
+        <tbody>
+          <tr>
+            <td
+              class="align-top p-2 border"
+            >
+              <a
+                class="block text-center hover:bg-gray-50 p-2"
+                data-discover="true"
+                href="/country/Country 1"
+              >
+                <div
+                  class="font-medium mb-2"
+                >
+                  Country 1
+                </div>
+                <img
+                  alt="Country 1 flag"
+                  class="mx-auto w-16 h-auto border"
+                  src="flag1.svg"
+                />
+              </a>
+            </td>
+            <td
+              class="align-top p-2 border"
+            >
+              <a
+                class="block text-center hover:bg-gray-50 p-2"
+                data-discover="true"
+                href="/country/Country 2"
+              >
+                <div
+                  class="font-medium mb-2"
+                >
+                  Country 2
+                </div>
+                <img
+                  alt="Country 2 flag"
+                  class="mx-auto w-16 h-auto border"
+                  src="flag2.svg"
+                />
+              </a>
+            </td>
+            <td
+              class="align-top p-2 border"
+            />
+            <td
+              class="align-top p-2 border"
+            />
+            <td
+              class="align-top p-2 border"
+            />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;

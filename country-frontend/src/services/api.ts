@@ -1,5 +1,9 @@
 import axios from 'axios'
 
+export interface Country {
+  name: string;
+  flagUrl: string;
+}
 /*const REST_COUNTRIES_API = 'https://restcountries.com/v3.1'
 
 export const fetchAllCountries = async () => {

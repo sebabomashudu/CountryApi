@@ -9,6 +9,9 @@ interface CountriesGridProps {
 }
 
 export function CountriesGrid({ countries, columns = 5 }: CountriesGridProps) {
+  if (countries.length === 0) {
+  return null;
+}
   return (
     <div className="w-full">
       <table className="w-full table-fixed">
